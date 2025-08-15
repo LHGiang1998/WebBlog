@@ -17,6 +17,7 @@ class BlogManager {
         this.updatePostCount();
         this.setupSmoothScrolling();
         this.setupBackToTop();
+        this.loadSamplePosts();
     }
     
     setupEventListeners() {
@@ -196,10 +197,23 @@ class BlogManager {
         const previewContent = document.getElementById('previewContent');
         previewContent.innerHTML = `
             <h1>${title}</h1>
-            <div class="preview-content">${marked.parse(content)}</div>
+            <div class="preview-content">${this.parseMarkdown(content)}</div>
         `;
         
         document.getElementById('previewModal').style.display = 'block';
+    }
+    
+    parseMarkdown(text) {
+        // Simple markdown parser
+        return text
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\*(.*)\*/gim, '<em>$1</em>')
+            .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
+            .replace(/`(.*?)`/gim, '<code>$1</code>')
+            .replace(/\n/gim, '<br>');
     }
     
     renderPosts(append = false) {
@@ -319,7 +333,7 @@ class BlogManager {
                 <div class="post-tags">
                     ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                 </div>
-                <div class="post-content">${marked.parse(post.content)}</div>
+                <div class="post-content">${this.parseMarkdown(post.content)}</div>
             </div>
         `;
         
@@ -491,22 +505,18 @@ class BlogManager {
             });
         });
     }
-}
-
-// Initialize blog manager when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.blogManager = new BlogManager();
     
-    // Add some sample posts if none exist
-    if (blogManager.posts.length === 0) {
-        const samplePosts = [
-            {
-                id: 1,
-                title: "Giới thiệu về PLC và ứng dụng trong tự động hóa",
-                category: "automation",
-                tags: ["PLC", "Automation", "Industrial"],
-                excerpt: "PLC (Programmable Logic Controller) là thiết bị điều khiển logic có thể lập trình, được sử dụng rộng rãi trong tự động hóa công nghiệp...",
-                content: `# Giới thiệu về PLC và ứng dụng trong tự động hóa
+    loadSamplePosts() {
+        // Add sample posts if none exist
+        if (this.posts.length === 0) {
+            const samplePosts = [
+                {
+                    id: 1,
+                    title: "Giới thiệu về PLC và ứng dụng trong tự động hóa",
+                    category: "automation",
+                    tags: ["PLC", "Automation", "Industrial"],
+                    excerpt: "PLC (Programmable Logic Controller) là thiết bị điều khiển logic có thể lập trình, được sử dụng rộng rãi trong tự động hóa công nghiệp...",
+                    content: `# Giới thiệu về PLC và ứng dụng trong tự động hóa
 
 PLC (Programmable Logic Controller) là thiết bị điều khiển logic có thể lập trình, được sử dụng rộng rãi trong tự động hóa công nghiệp.
 
@@ -525,16 +535,16 @@ PLC (Programmable Logic Controller) là thiết bị điều khiển logic có t
 4. **Hệ thống HVAC**
 
 PLC đã trở thành xương sống của ngành tự động hóa hiện đại.`,
-                date: new Date().toLocaleDateString('vi-VN'),
-                timestamp: Date.now() - 86400000
-            },
-            {
-                id: 2,
-                title: "Xây dựng hệ thống IoT với ESP32 và MQTT",
-                category: "iot",
-                tags: ["ESP32", "IoT", "MQTT", "WiFi"],
-                excerpt: "Hướng dẫn chi tiết cách xây dựng một hệ thống IoT đơn giản sử dụng ESP32 và giao thức MQTT để truyền dữ liệu...",
-                content: `# Xây dựng hệ thống IoT với ESP32 và MQTT
+                    date: new Date().toLocaleDateString('vi-VN'),
+                    timestamp: Date.now() - 86400000
+                },
+                {
+                    id: 2,
+                    title: "Xây dựng hệ thống IoT với ESP32 và MQTT",
+                    category: "iot",
+                    tags: ["ESP32", "IoT", "MQTT", "WiFi"],
+                    excerpt: "Hướng dẫn chi tiết cách xây dựng một hệ thống IoT đơn giản sử dụng ESP32 và giao thức MQTT để truyền dữ liệu...",
+                    content: `# Xây dựng hệ thống IoT với ESP32 và MQTT
 
 ESP32 là một vi điều khiển mạnh mẽ với khả năng kết nối WiFi và Bluetooth tích hợp, rất phù hợp cho các dự án IoT.
 
@@ -564,14 +574,20 @@ DHT dht(2, DHT22);
 ## Kết nối và gửi dữ liệu
 
 Hệ thống sẽ đọc dữ liệu từ cảm biến và gửi lên MQTT broker mỗi 30 giây.`,
-                date: new Date().toLocaleDateString('vi-VN'),
-                timestamp: Date.now() - 172800000
-            }
-        ];
-        
-        blogManager.posts = samplePosts;
-        blogManager.savePosts();
-        blogManager.renderPosts();
-        blogManager.updatePostCount();
+                    date: new Date().toLocaleDateString('vi-VN'),
+                    timestamp: Date.now() - 172800000
+                }
+            ];
+            
+            this.posts = samplePosts;
+            this.savePosts();
+            this.renderPosts();
+            this.updatePostCount();
+        }
     }
+}
+
+// Initialize blog manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.blogManager = new BlogManager();
 });
