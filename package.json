@@ -1,0 +1,36 @@
+{
+  "name": "hoai-giang-automation-blog",
+  "version": "1.0.0",
+  "description": "Blog chia sẻ kiến thức tự động hóa và công nghệ",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site - no build needed'",
+    "start": "npx serve .",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "blog",
+    "automation",
+    "iot",
+    "programming",
+    "plc",
+    "scada",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "Hoài Giang",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/hoai-giang-automation-blog.git"
+  },
+  "homepage": "https://hoai-giang-automation.vercel.app"
+}
