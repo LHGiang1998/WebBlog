@@ -77,12 +77,14 @@ class BlogManager {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
+
                 e.target.classList.add('active');
                 document.getElementById(e.target.dataset.tab + 'Tab').classList.add('active');
-                
+
                 if (e.target.dataset.tab === 'manage') {
                     this.renderAdminPosts();
+                } else if (e.target.dataset.tab === 'settings') {
+                    this.renderSettingsTab();
                 }
             });
         });
@@ -126,17 +128,60 @@ class BlogManager {
     
     handleLogin() {
         const password = document.getElementById('adminPassword').value;
-        // Simple password check - in production, use proper authentication
-        if (password === 'admin123') {
+
+        // Secure password check using hash
+        const hashedPassword = this.hashPassword(password);
+        const storedHash = localStorage.getItem('adminPasswordHash') || this.getDefaultPasswordHash();
+
+        if (hashedPassword === storedHash) {
             this.isAdmin = true;
             document.getElementById('adminModal').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             document.body.style.overflow = 'hidden';
             this.showNotification('Đăng nhập thành công!', 'success');
+
+            // Show password change reminder for first login
+            if (!localStorage.getItem('adminPasswordHash')) {
+                setTimeout(() => {
+                    this.showNotification('Khuyến nghị: Hãy đổi mật khẩu admin trong tab "Cài đặt"!', 'info');
+                }, 2000);
+            }
         } else {
             this.showNotification('Mật khẩu không đúng!', 'error');
         }
         document.getElementById('adminPassword').value = '';
+    }
+
+    // Simple hash function for password (in production, use proper bcrypt)
+    hashPassword(password) {
+        let hash = 0;
+        for (let i = 0; i < password.length; i++) {
+            const char = password.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return hash.toString();
+    }
+
+    // Default password hash for "admin123" - user should change this
+    getDefaultPasswordHash() {
+        return this.hashPassword('admin123');
+    }
+
+    // Change admin password
+    changeAdminPassword(currentPassword, newPassword) {
+        const currentHash = this.hashPassword(currentPassword);
+        const storedHash = localStorage.getItem('adminPasswordHash') || this.getDefaultPasswordHash();
+
+        if (currentHash === storedHash) {
+            const newHash = this.hashPassword(newPassword);
+            localStorage.setItem('adminPasswordHash', newHash);
+            this.showNotification('Mật khẩu đã được thay đổi thành công!', 'success');
+            return true;
+        } else {
+            this.showNotification('Mật khẩu hiện tại không đúng!', 'error');
+            return false;
+        }
     }
     
     logout() {
@@ -342,7 +387,7 @@ class BlogManager {
     
     renderAdminPosts() {
         const container = document.getElementById('adminPostsList');
-        
+
         if (this.posts.length === 0) {
             container.innerHTML = `
                 <div class="no-posts">
@@ -353,7 +398,7 @@ class BlogManager {
             `;
             return;
         }
-        
+
         const postsHTML = this.posts.map(post => `
             <div class="post-item">
                 <div class="post-info">
@@ -361,17 +406,167 @@ class BlogManager {
                     <p>Chuyên mục: ${post.category} | Ngày đăng: ${post.date}</p>
                 </div>
                 <div class="post-actions">
-                    <button class="btn-small btn-edit" onclick="blogManager.editPost(${post.id})">
+                    <button class="btn-small btn-edit" onclick="window.blogManager.editPost(${post.id})">
                         <i class="fas fa-edit"></i> Sửa
                     </button>
-                    <button class="btn-small btn-delete" onclick="blogManager.deletePost(${post.id})">
+                    <button class="btn-small btn-delete" onclick="window.blogManager.deletePost(${post.id})">
                         <i class="fas fa-trash"></i> Xóa
                     </button>
                 </div>
             </div>
         `).join('');
-        
+
         container.innerHTML = postsHTML;
+    }
+
+    renderSettingsTab() {
+        const container = document.getElementById('settingsTab');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="settings-section">
+                <h3><i class="fas fa-key"></i> Đổi mật khẩu Admin</h3>
+                <form id="changePasswordForm" class="password-form">
+                    <div class="form-group">
+                        <label>Mật khẩu hiện tại:</label>
+                        <input type="password" id="currentPassword" placeholder="Nhập mật khẩu hiện tại" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu mới:</label>
+                        <input type="password" id="newPassword" placeholder="Nhập mật khẩu mới" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu mới:</label>
+                        <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới" required>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Đổi mật khẩu
+                    </button>
+                </form>
+            </div>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-info-circle"></i> Thông tin bảo mật</h3>
+                <div class="security-info">
+                    <p><i class="fas fa-shield-alt"></i> Mật khẩu được mã hóa và lưu trữ local</p>
+                    <p><i class="fas fa-exclamation-triangle"></i> Khuyến nghị sử dụng mật khẩu mạnh (8+ ký tự)</p>
+                    <p><i class="fas fa-database"></i> Dữ liệu blog lưu trong LocalStorage</p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-download"></i> Sao lưu & Khôi phục</h3>
+                <div class="backup-controls">
+                    <button id="exportDataBtn" class="btn-secondary">
+                        <i class="fas fa-download"></i> Xuất dữ liệu
+                    </button>
+                    <button id="importDataBtn" class="btn-secondary">
+                        <i class="fas fa-upload"></i> Nhập dữ liệu
+                    </button>
+                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+        `;
+
+        // Add event listeners for settings
+        this.setupSettingsEventListeners();
+    }
+
+    setupSettingsEventListeners() {
+        // Change password form
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handlePasswordChange();
+            });
+        }
+
+        // Export data
+        const exportBtn = document.getElementById('exportDataBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportData();
+            });
+        }
+
+        // Import data
+        const importBtn = document.getElementById('importDataBtn');
+        const importInput = document.getElementById('importFileInput');
+        if (importBtn && importInput) {
+            importBtn.addEventListener('click', () => {
+                importInput.click();
+            });
+
+            importInput.addEventListener('change', (e) => {
+                this.importData(e.target.files[0]);
+            });
+        }
+    }
+
+    handlePasswordChange() {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            this.showNotification('Mật khẩu xác nhận không khớp!', 'error');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            this.showNotification('Mật khẩu mới phải có ít nhất 6 ký tự!', 'error');
+            return;
+        }
+
+        if (this.changeAdminPassword(currentPassword, newPassword)) {
+            document.getElementById('changePasswordForm').reset();
+        }
+    }
+
+    exportData() {
+        const data = {
+            posts: this.posts,
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hoai-giang-blog-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showNotification('Dữ liệu đã được xuất thành công!', 'success');
+    }
+
+    importData(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.posts && Array.isArray(data.posts)) {
+                    if (confirm('Bạn có chắc chắn muốn nhập dữ liệu? Điều này sẽ ghi đè lên dữ liệu hiện tại.')) {
+                        this.posts = data.posts;
+                        this.savePosts();
+                        this.renderPosts();
+                        this.updatePostCount();
+                        this.showNotification('Dữ liệu đã được nhập thành công!', 'success');
+                    }
+                } else {
+                    this.showNotification('File dữ liệu không hợp lệ!', 'error');
+                }
+            } catch (error) {
+                this.showNotification('Lỗi khi đọc file dữ liệu!', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
     
     editPost(postId) {

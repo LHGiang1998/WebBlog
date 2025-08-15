@@ -89,6 +89,7 @@ vercel --prod
 - **Viết bài**: Hỗ trợ Markdown
 - **Xem trước**: Preview trước khi đăng
 - **Quản lý bài viết**: Sửa, xóa bài viết
+- **Cài đặt bảo mật**: Đổi mật khẩu, backup dữ liệu
 - **Categories**: automation, iot, programming, tutorial
 - **Tags**: Tự do thêm tags
 

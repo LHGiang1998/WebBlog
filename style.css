@@ -781,6 +781,75 @@ body {
     background: #dc2626;
 }
 
+/* Settings Tab */
+.settings-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.settings-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    color: #1e293b;
+    font-size: 1.25rem;
+}
+
+.password-form {
+    max-width: 400px;
+}
+
+.password-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.password-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.security-info {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.security-info p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.75rem;
+    color: #64748b;
+}
+
+.security-info p:last-child {
+    margin-bottom: 0;
+}
+
+.security-info i {
+    color: #2563eb;
+    width: 16px;
+}
+
+.backup-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.backup-controls button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Back to top button */
 .back-to-top {
     position: fixed;
